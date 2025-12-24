@@ -1,8 +1,6 @@
 import prisma from "@/lib/prisma";
 
 export default async function Home() {
-  // Fetch data from your database
-  // Replace 'user' with your actual model name
   const users = await prisma.user.findMany();
 
   return (
