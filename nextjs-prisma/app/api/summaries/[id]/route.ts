@@ -2,35 +2,25 @@ import { NextRequest, NextResponse } from "next/server"
 import  prisma  from "@/lib/prisma"
 import { requireAuth } from "@/lib/auth-helpers"
 
-// GET /api/summaries/[id] - Get single summary with all relations
+
 export async function GET(
   req: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
-    // Check authentication
+   
     const user = await requireAuth()
     if (user instanceof NextResponse) return user
 
     const summaryId = params.id
 
-    // Fetch summary with all relations
+  
     const summary = await prisma.summary.findUnique({
       where: {
         id: summaryId,
       },
       include: {
         upload: true,
-        translations: {
-          orderBy: {
-            createdAt: "desc"
-          }
-        },
-        qnas: {
-          orderBy: {
-            createdAt: "asc"
-          }
-        },
         share: true,
       }
     })

@@ -1,7 +1,9 @@
 import { NextRequest , NextResponse } from "next/server";
 import prisma from '@/lib/prisma'
 import { requireAuth } from "@/lib/auth-helpers";
-import { Prisma } from "@prisma/client/extension";
+import {  UploadType } from "@/app/generated/prisma/enums";
+import { Prisma } from "@/app/generated/prisma/client";
+import { UploadStatus } from "@/app/generated/prisma/enums";
 
 
 export async function POST(req : NextRequest){
@@ -10,11 +12,11 @@ export async function POST(req : NextRequest){
         if(user instanceof NextResponse) return user;
 
         const body = await req.json();
-        const { type , source , fileName , fileSize } = body;
+        const { type , source  } = body;
 
         if(!type || !source){
             return NextResponse.json(
-                {error : "Type ans Source are arequired!!"},
+                {error : "Type and Source are required!!"},
                 {status : 400}
             )
         }
@@ -27,39 +29,33 @@ export async function POST(req : NextRequest){
             )
         }
 
-       type CustomUploadCreateInput = Prisma.UploadCreateInput & {
-  fileName?: string;
-}
-
-const upload = await prisma.upload.create({
-  data: {
-    userId: user.id,
-    type,
-    source,
-    fileName: fileName || null,
-    fileSize: fileSize || null,
-    status: "PENDING",
-  } as CustomUploadCreateInput,
-})
+        const upload = await prisma.upload.create({
+            data: {
+                userId: user.id,
+                type: type as UploadType,
+                source,
+                status: "PENDING",
+            },
+        })
 
         return NextResponse.json({
             success : true,
             upload: {
-                 id: upload.id,
-        type: upload.type,
-        source: upload.source,
-        status: upload.status,
-        createdAt: upload.createdAt,
+                id: upload.id,
+                type: upload.type,
+                source: upload.source,
+                status: upload.status,
+                createdAt: upload.createdAt,
             },
         },
-     {status : 201})
+        {status : 201})
          
     } catch (error) {
         console.log("Upload creation error:" , error)
         return NextResponse.json({
             error:"Failed to create upload"
         },
-    {status : 500})
+        {status : 500})
         
     }
 }
@@ -73,48 +69,45 @@ export async function GET(req : NextRequest){
         const status = searchParams.get("status")
         const type = searchParams.get("type")
 
-        const where : any =  {
+        const where: Prisma.UploadWhereInput = {
             userId: user.id,
-        }
+        };
 
         if(status){
-            where.status = status
+            where.status = status as UploadStatus;
         }
 
         if(type){
-            where.type = type
+            where.type = type as UploadType
         }
 
-          const uploads = await prisma.upload.findMany({
-      where,
-      include: {
-        summary: {
-          select: {
-            id: true,
-            summaryText: true,
-            createdAt: true,
-          }
-        }
-      },
-      orderBy: {
-        createdAt: "desc"
-      }
-    })
+        const uploads = await prisma.upload.findMany({
+            where,
+            include: {
+                summaries: {
+                    select: {
+                        id: true,
+                        summaryText: true,
+                        createdAt: true,
+                    }
+                }
+            },
+            orderBy: {
+                createdAt: "desc"
+            }
+        })
 
-    return NextResponse.json({
-      success: true,
-      count: uploads.length,
-      uploads,
-    })
+        return NextResponse.json({
+            success: true,
+            count: uploads.length,
+            uploads,
+        })
 
-
-        
     } catch (error) {
-    console.error("Fetch uploads error:", error)
-    return NextResponse.json(
-      { error: "Failed to fetch uploads" },
-      { status: 500 }
-    )
-  }
+        console.error("Fetch uploads error:", error)
+        return NextResponse.json(
+            { error: "Failed to fetch uploads" },
+            { status: 500 }
+        )
+    }
 }
-

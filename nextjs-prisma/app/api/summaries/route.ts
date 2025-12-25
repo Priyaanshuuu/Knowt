@@ -2,14 +2,13 @@ import { NextRequest, NextResponse } from "next/server"
 import  prisma  from "@/lib/prisma"
 import { requireAuth } from "@/lib/auth-helpers"
 
-// GET /api/summaries - Get all summaries for current user
 export async function GET(req: NextRequest) {
   try {
-    // Check authentication
+ 
     const user = await requireAuth()
     if (user instanceof NextResponse) return user
 
-    // Fetch summaries with relations
+ 
     const summaries = await prisma.summary.findMany({
       where: {
         userId: user.id,
@@ -18,25 +17,14 @@ export async function GET(req: NextRequest) {
         upload: {
           select: {
             type: true,
-            fileName: true,
+           // fileName: true,
             createdAt: true,
-          }
-        },
-        translations: {
-          select: {
-            id: true,
-            language: true,
-          }
-        },
-        qnas: {
-          select: {
-            id: true,
           }
         },
         share: {
           select: {
             slug: true,
-            views: true,
+           // views: true,
           }
         }
       },

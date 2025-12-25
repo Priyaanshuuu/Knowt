@@ -1,6 +1,7 @@
 import { NextRequest , NextResponse } from "next/server";
 import prisma from "@/lib/prisma"
 import { requireAuth } from "@/lib/auth-helpers";
+import { UploadStatus } from "@/app/generated/prisma/enums";
 
 
 
@@ -58,8 +59,16 @@ export async function PATCH(
         if(user instanceof NextResponse) return user
         
         const uploadId = params.id
-        const body = await req.json
-        const {status , error} = body
+        const body : { status : string} = await req.json();
+        const { status } = body;
+
+        const validStatuses = ["PENDING", "PROCESSING", "COMPLETED", "FAILED"];
+        if(status && !validStatuses.includes(status)){
+            return NextResponse.json(
+                { error : "Invalid status value"},
+                {status : 400}
+            )
+        }
 
         const upload = await prisma.upload.findUnique({
             where : { id : uploadId}
@@ -82,8 +91,8 @@ export async function PATCH(
         const updatedUpload = await prisma.upload.update({
             where: {id : uploadId},
             data: {
-                status : status || upload.status,
-                error : error || upload.error,
+                status : (status as UploadStatus) || upload.status,
+                
             }
         })
 
