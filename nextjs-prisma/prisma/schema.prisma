@@ -57,6 +57,20 @@ enum UploadStatus {
   FAILED
 }
 
+model Translation {
+  id        String   @id @default(cuid())
+  summaryId String
+  //summary   Summary  @relation(fields: [summaryId], references: [id], onDelete: Cascade)
+  
+  language  String   // es, fr, de, hi, etc.
+  content   String   @db.Text
+  
+  createdAt DateTime @default(now())
+  
+  @@unique([summaryId, language]) // One translation per language per summary
+  @@index([summaryId])
+}
+
 
 model Upload {
   id          String   @id @default(cuid())

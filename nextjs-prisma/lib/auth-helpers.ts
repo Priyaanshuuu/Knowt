@@ -12,7 +12,7 @@ export async function requireAuth(){
 
     if(!user){
         return NextResponse.json({
-            error: "UnAauthorized User!!"
+            error: "Unauthorized User!!"
         },
     {status : 401})
     }
