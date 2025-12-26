@@ -39,7 +39,7 @@ export async function POST(req: NextRequest){
                 email, 
                 password : hashedPassword,
                 name : name! ,
-                image : "",
+              //  image : "",
             }
         })
 
