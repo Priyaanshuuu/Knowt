@@ -18,9 +18,9 @@ export async function getCurrentUser() {
     }
 
     // Fallback: Check custom auth-token
-    const cookieStore = cookies()
+    const cookieStore = await cookies()
     const allCookies = cookieStore.getAll()
-    console.log("All cookies:", allCookies.map(c => c.name))
+    console.log("All cookies:", allCookies.map((c: { name: string }) => c.name))
     
     const token = cookieStore.get("auth-token")
     console.log("auth-token cookie:", token ? "Found" : "Not found")
@@ -28,7 +28,7 @@ export async function getCurrentUser() {
     if (token) {
       console.log("Token value (first 50 chars):", token.value.substring(0, 50))
       try {
-        const decoded = verify(token.value, process.env.NEXTAUTH_SECRET!) as any
+        const decoded = verify(token.value, process.env.NEXTAUTH_SECRET!) as { id: string; email: string; name: string }
         console.log("✅ Custom token decoded:", decoded.email)
         return {
           id: decoded.id,
