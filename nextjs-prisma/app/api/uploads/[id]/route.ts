@@ -2,6 +2,7 @@ import { NextRequest , NextResponse } from "next/server";
 import prisma from "@/lib/prisma"
 import { requireAuth } from "@/lib/auth-helpers";
 import { UploadStatus } from "@/app/generated/prisma/enums";
+import { deleteFile } from "@/lib/storage";
 
 
 
@@ -116,13 +117,13 @@ export async function PATCH(
         {params} : { params: { id : string}}
     ){
         try {
-            const user = await requireAuth()
+            const user = await requireAuth();
             if(user instanceof NextResponse) return user
-            
+
             const uploadId = params.id
 
             const upload = await prisma.upload.findUnique({
-                where : {id : uploadId}
+                where: {id : uploadId}
             })
 
             if(!upload){
@@ -132,29 +133,40 @@ export async function PATCH(
                 )
             }
 
-            if(upload.userId != user.id){
-                return NextResponse.json({
-                    error : "Unauthorized"
-                },
-            {status : 403})
+            if(upload.userId !== user.id){
+                return NextResponse.json(
+                    {error : "Upload not found"},
+                    {status : 404}
+                )
+            }
+
+            if(upload.type === "PDF" || upload.type === "AUDIO"){
+                try {
+                    const deleted = await deleteFile(upload.source)
+                    if(deleted){
+                        console.log("File deleted from Imagekit" , upload.source);
+                    } else{
+                        console.log("File not found in Imagekit(may have been already deleted)");
+                    }
+                    
+                } catch (error) {
+                    console.log("Failed to delete file from Imagekit" , error);
+                }
             }
 
             await prisma.upload.delete({
-                where : {id:uploadId}
+                where: {id : uploadId}
             })
 
-            return NextResponse.json(
-                {success : true,
-                message : "Upload deleted successfully"
-                }
-            )
-            
+            return NextResponse.json({
+                success  : true,
+                message : "Upload and file deleted successfully",
+            })
         } catch (error) {
-            console.error("Delete upload error" , error)
+            console.log("Delete upload error" , error);
             return NextResponse.json(
                 {error : "Failed to delete upload"},
                 {status : 500}
             )
-            
         }
     }
