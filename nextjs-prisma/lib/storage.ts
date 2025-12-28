@@ -44,14 +44,20 @@ export async function deleteFile(fileUrl: string){
             searchQuery: `name=${fileId}`
         })
 
-        if(files.length === 0){
-            console.log("File not found in ImageKit")
-            return false;
-        }
+       if (files.length === 0) {
+    console.log("File not found in ImageKit");
+    return false;
+}
 
-        await imagekit.deleteFile(files[0].fileId)
-        console.log("File Deleted Successfully");
-        return true
+const file = files[0];
+if ('fileId' in file) {
+    await imagekit.deleteFile(file.fileId);
+    console.log("File Deleted Successfully");
+    return true;
+} else {
+    console.log("Invalid file object in the array");
+    return false;
+}
         
     } catch (error) {
         console.log("ImageKit delete error" , error);
