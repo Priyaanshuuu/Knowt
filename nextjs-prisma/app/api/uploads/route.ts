@@ -89,6 +89,7 @@ export async function POST(req : NextRequest){
                 type: type as UploadType,
                 source: fileUrl,
                 status: UploadStatus.PENDING,
+                error: ""
             },
         })
 

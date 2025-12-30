@@ -3,6 +3,7 @@ import axios from "axios";
 import fs from "fs"
 import path from "path";
 import { promisify } from "util";
+import os from "os"  // Add this import
 
 const writeFile = promisify(fs.writeFile)
 const unlink = promisify(fs.unlink)
@@ -11,7 +12,7 @@ const openai = new OpenAI({
 })
 
 export async function transcribeAudio(audioUrl:string) {
-    let tempFilePath : string | undefined
+    let tempFilePath: string | undefined
 
 try {
     console.log("Downloading audio from:" , audioUrl);
@@ -24,7 +25,8 @@ try {
 
     const fileExtension = audioUrl.split(".").pop()?.split("?")[0] || "mp3"
 
-    tempFilePath = path.join("/tmp" , `audio_${Date.now()}.${fileExtension}`)
+    // Use os.tmpdir() instead of "/tmp" for cross-platform compatibility
+    tempFilePath = path.join(os.tmpdir(), `audio_${Date.now()}.${fileExtension}`)
     await writeFile(tempFilePath , response.data)
 
     console.log("Audio saved to temp file" , tempFilePath);

@@ -11,8 +11,10 @@
   "dependencies": {
     "@prisma/adapter-pg": "^7.2.0",
     "@prisma/client": "^7.2.0",
+    "assemblyai": "^4.22.1",
     "axios": "^1.13.2",
     "bcrypt": "^6.0.0",
+    "canvas": "^3.2.0",
     "cheerio": "^1.1.2",
     "dotenv": "^17.2.3",
     "imagekit": "^6.0.0",

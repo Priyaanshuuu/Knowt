@@ -1,9 +1,6 @@
 import { NextRequest , NextResponse } from "next/server";
 import prisma from "@/lib/prisma"
 import { requireAuth } from "@/lib/auth-helpers";
-import { extractTextfromPDF } from "@/lib/extractors/pdf";
-import { transcribeAudio } from "@/lib/extractors/audio";
-import { extractTextfromWeb } from "@/lib/extractors/web";
 import { generateSummary } from "@/lib/ai/summarize";
 
 export async function POST(req: NextRequest){
@@ -61,17 +58,23 @@ export async function POST(req: NextRequest){
             console.log("Extracting contetn from" , upload.type, "...");
 
             switch (upload.type) {
-                case "PDF":
+                case "PDF": {
+                    const { extractTextfromPDF } = await import("@/lib/extractors/pdf")
                     text = await extractTextfromPDF(upload.source)
                     break;
+                }
 
-                case "AUDIO":
+                case "AUDIO": {
+                    const { transcribeAudio } = await import("@/lib/extractors/audio")
                     text = await transcribeAudio(upload.source)
                     break;
+                }
 
-                case "LINK":
+                case "LINK": {
+                    const { extractTextfromWeb } = await import("@/lib/extractors/web")
                     text = await extractTextfromWeb(upload.source)
                     break;
+                }
             
                 default:
                     throw new Error(`Unsupported type ${upload.type}`)
