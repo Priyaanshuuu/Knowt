@@ -14,3 +14,16 @@ declare module "next-auth/jwt" {
     id: string;
   }
 }
+
+declare module 'pdf-parse' {
+  interface PDFData {
+    numpages: number
+    numrender: number
+    text: string
+    version: string
+  }
+
+  function pdf(dataBuffer: Buffer): Promise<PDFData>
+  
+  export = pdf
+}

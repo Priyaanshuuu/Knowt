@@ -38,7 +38,7 @@ export async function POST(req: NextRequest){
         }
 
         const existingSummary = await prisma.summary.findUnique({
-            where : {uploadId : upload.id}
+            where : {id : upload.id , uploadId: upload.id}
         })
 
         if(existingSummary){
@@ -128,6 +128,8 @@ export async function POST(req: NextRequest){
         uploadId: upload.id,
         summaryText,
         language: "en",
+        inputType : upload.type,
+        originalUrl: upload.source
       },
     })
 

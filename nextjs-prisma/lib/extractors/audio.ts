@@ -11,7 +11,7 @@ const openai = new OpenAI({
 })
 
 export async function transcribeAudio(audioUrl:string) {
-    let tempFilePath : string
+    let tempFilePath : string | undefined
 
 try {
     console.log("Downloading audio from:" , audioUrl);

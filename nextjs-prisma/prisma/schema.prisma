@@ -40,6 +40,7 @@ model Summary {
   uploadId String?
   upload   Upload? @relation(fields: [uploadId], references: [id])
   share     Share[]
+  language  String
 
 }
 
@@ -77,11 +78,11 @@ model Upload {
   userId      String
   type        UploadType
   source      String        // file URL / yt link / web URL
-  status      UploadStatus  @default(PENDING)
+  status      String
   createdAt   DateTime      @default(now())
-
   user        User          @relation(fields: [userId], references: [id])
   summaries   Summary[]
+  error       String
 }
 
  model Share{

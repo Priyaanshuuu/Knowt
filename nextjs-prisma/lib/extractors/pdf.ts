@@ -1,35 +1,57 @@
-import {pdf} from "pdf-parse"
 import axios from "axios"
+import * as pdfjsLib from "pdfjs-dist"
 
-export async function extractTextfromPDF(fileURL : string){
- 
+// Set worker path
+pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`
+
+export async function extractTextfromPDF(fileURL: string): Promise<string> {
     try {
-        console.log("Downloading file from:" , fileURL);
+        console.log("Downloading file from:", fileURL);
 
-        const response = await axios.get(fileURL , {
-            responseType : "arraybuffer"
+        const response = await axios.get(fileURL, {
+            responseType: "arraybuffer"
         })
 
-        console.log("PDF dowmloaded , size:" , response.data.length , "bytes");
+        console.log("PDF downloaded, size:", response.data.length, "bytes");
         
-        const buffer = Buffer.from(response.data)
+        // Load PDF document
+        const loadingTask = pdfjsLib.getDocument({ data: response.data })
+        const pdf = await loadingTask.promise
 
-        const data = await pdf(buffer)
+        console.log("PDF loaded successfully");
+        console.log("Pages:", pdf.numPages);
 
-        console.log("PDF parsed successfully");
-        console.log("Pages:" , data.numpages);
-        console.log("Text length:" , data.Text.length, "characters");
+        // Extract text from all pages
+        let fullText = ""
 
-        if(!data.Text || data.Text.trim().length === 0){
-            throw new Error("PDF do not contain extractable text (might be scanned images)")
+        for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+            const page = await pdf.getPage(pageNum)
+            const textContent = await page.getTextContent()
+            
+           const pageText = textContent.items
+    .map((item) => {
+        if ('str' in item) {
+            return item.str;
+        } else {
+            return '';
+        }
+    })
+    .join(" ");
+            
+            fullText += pageText + "\n\n"
+        }
+
+        console.log("Text extracted successfully");
+        console.log("Text length:", fullText.length, "characters");
+
+        if (!fullText || fullText.trim().length === 0) {
+            throw new Error("PDF does not contain extractable text (might be scanned images)")
         }
         
-        return data.text
+        return fullText.trim()
         
     } catch (error) {
-        console.log("PDF extraction error :" , error);
-        throw new Error(`Failed to extract text from the PDF: ${(error as Error).message}`)
-        
-        
+        console.error("PDF extraction error:", error);
+        throw new Error(`Failed to extract text from PDF: ${(error as Error).message}`)
     }
 }
