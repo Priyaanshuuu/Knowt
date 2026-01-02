@@ -1,8 +1,8 @@
 import { NextRequest , NextResponse } from "next/server";
 import prisma from "@/lib/prisma"
 import { requireAuth } from "@/lib/auth-helpers";
-import { generateSummary } from "@/lib/ai/summarize";
-
+import { generateSummary } from "@/lib/ai/grog_summarizer";
+//import { extractTextfromPDF}  from "@/lib/extractors/pdf-api";
 export async function POST(req: NextRequest){
     try {
         const user = await requireAuth();
@@ -59,7 +59,7 @@ export async function POST(req: NextRequest){
 
             switch (upload.type) {
                 case "PDF": {
-                    const { extractTextfromPDF } = await import("@/lib/extractors/pdf")
+                    const { extractTextfromPDF } = await import("@/lib/extractors/pdf-api")
                     text = await extractTextfromPDF(upload.source)
                     break;
                 }
