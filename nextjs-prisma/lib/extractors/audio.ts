@@ -1,61 +1,66 @@
-import OpenAI from "openai";
-import axios from "axios";
-import fs from "fs"
+import fs from "fs";
 import path from "path";
-import { promisify } from "util";
-import os from "os"  // Add this import
+import os from "os";
+import axios from "axios";
+import Groq from "groq-sdk";
 
-const writeFile = promisify(fs.writeFile)
-const unlink = promisify(fs.unlink)
-const openai = new OpenAI({
-    apiKey : process.env.OPENAI_API_KEY
-})
+const groq = new Groq({
+  apiKey: process.env.GROG_API_KEY,
+});
 
-export async function transcribeAudio(audioUrl:string) {
-    let tempFilePath: string | undefined
+export async function transcribeAudio(fileURL: string): Promise<string> {
+  let tempFilePath: string | null = null;
 
-try {
-    console.log("Downloading audio from:" , audioUrl);
+  try {
+    console.log("Downloading Audio from:", fileURL);
 
-    const response = await axios.get(audioUrl , {
-        responseType : "arraybuffer"
-    })
-
-    console.log("Audio Downloaded, size:" , response.data.length , "bytes");
-
-    const fileExtension = audioUrl.split(".").pop()?.split("?")[0] || "mp3"
-
-    // Use os.tmpdir() instead of "/tmp" for cross-platform compatibility
-    tempFilePath = path.join(os.tmpdir(), `audio_${Date.now()}.${fileExtension}`)
-    await writeFile(tempFilePath , response.data)
-
-    console.log("Audio saved to temp file" , tempFilePath);
-
-    console.log("Transcribinn audio with Whisper...");
-    const transcription = await openai.audio.transcriptions.create({
-        file : fs.createReadStream(tempFilePath),
-        model : "whisper-1",
-        language: "en"
-    })
-
-    console.log("Transcription Complete");
-    console.log("Transcripted text length" , transcription.text.length , "characters");
-
-    return transcription.text
+    const urlPath = new URL(fileURL).pathname;
+    const ext = path.extname(urlPath) || ".mp3";
     
-} catch (error) {
-    console.log("Audio transcription error:" , error);
-    throw new Error(`Failed to transcribe audio: ${(error as Error).message}`)    
-} finally {
-    if(tempFilePath){
-        try {
-            await unlink(tempFilePath)
-            console.log("Temp file deleted");
-            
-        } catch (error) {
-            console.log("Failed to delete temp file" , error);
-        }
+    const tempDir = os.tmpdir();
+    const fileName = `audio-${Date.now()}${ext}`;
+    tempFilePath = path.join(tempDir, fileName);
+
+    const response = await axios.get(fileURL, { responseType: "stream" });
+    const writer = fs.createWriteStream(tempFilePath);
+
+    response.data.pipe(writer);
+
+    await new Promise((resolve , reject) => {
+      writer.on("finish", ()=> resolve);
+      writer.on("error", (error) => reject(error));
+    });
+
+    console.log("Audio downloaded to temp file:", tempFilePath);
+
+    const transcription = await groq.audio.transcriptions.create({
+      file: fs.createReadStream(tempFilePath),
+      model: "distil-whisper-large-v3-en", 
+      response_format: "json",
+    });
+
+    const text = transcription.text;
+
+    if (!text || text.trim().length === 0) {
+      throw new Error("Audio transcribed but returned empty text.");
     }
-}
-    
+
+    console.log("Transcription complete. Length:", text.length);
+
+    return text;
+
+  } catch (error) {
+    console.error("Audio Transcription Error:", error);
+    throw new Error(`Failed to transcribe audio:`);
+  } finally {
+ 
+    if (tempFilePath && fs.existsSync(tempFilePath)) {
+      try {
+        fs.unlinkSync(tempFilePath);
+        console.log("Temp audio file cleaned up");
+      } catch (cleanupError) {
+        console.warn("Failed to delete temp file:", cleanupError);
+      }
+    }
+  }
 }
