@@ -10,6 +10,10 @@ export async function POST(req : NextRequest){
 
         const {summaryId , targetLanguage} = await req.json()
 
+        console.log("DEBUG: Received Request");
+console.log("DEBUG: summaryId:", summaryId); 
+console.log("DEBUG: targetLanguage:", targetLanguage);
+
         if(!summaryId || !targetLanguage){
             return NextResponse.json(
                 {error: "summaryId and targetLanguage is required!"},
@@ -31,6 +35,13 @@ export async function POST(req : NextRequest){
             return NextResponse.json(
                 {error : "Summary not found!"},
                 {status : 403}
+            )
+        }
+
+        if(!summary.summaryText){
+            return NextResponse.json(
+                {error: "Summary text is empty, cannot translate!"},
+                {status: 400}
             )
         }
 
@@ -87,6 +98,59 @@ export async function POST(req : NextRequest){
         return NextResponse.json(
             {error: "Failed to translate summary"},
             {status: 500}
+        )
+    }
+}
+
+export async function GET(req : NextRequest){
+    try {
+        const user = await requireAuth();
+        if(user instanceof NextResponse) return user
+
+        const {searchParams} = new URL(req.url)
+        const summaryId = searchParams.get("summaryId")
+
+        if(!summaryId){
+            return NextResponse.json(
+                {error : "SummaryId is required!!"},
+                {status : 400}
+            )
+        }
+
+        const summary = await prisma.summary.findUnique({
+            where : {id : summaryId}
+        })
+
+        if(!summary){
+            return NextResponse.json(
+                {error : "Summary not found!!"},
+                {status : 404}
+            )
+        }
+
+        if(summary.userId != user.id){
+            return NextResponse.json(
+                {error : "Unauthorized User!"},
+                {status : 403}
+            )
+        }
+
+        const translations = await prisma.translation.findMany({
+            where : {summaryId : summaryId},
+            orderBy : {createdAt : "desc"}
+        })
+         return NextResponse.json({
+              success : true,
+              count : translations.length,
+              translations
+         }
+         )
+        
+    } catch (error) {
+        console.log("Fetch translations error" , error);
+        return NextResponse.json(
+            {error : "Failed to fetch translations"},
+            {status : 500}
         )
     }
 }
