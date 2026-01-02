@@ -43,7 +43,6 @@ export async function extractTextfromPDF(fileURL: string): Promise<string> {
       if (error.response?.status === 403) throw new Error("Access denied to PDF.");
     }
 
-    // Pass through custom error messages or default generic one
     throw new Error( "Failed to parse PDF content.");
   }
 }

@@ -41,6 +41,7 @@ model Summary {
   upload   Upload? @relation(fields: [uploadId], references: [id])
   share     Share[]
   language  String
+  translation Translation[]
 
 }
 
@@ -61,7 +62,7 @@ enum UploadStatus {
 model Translation {
   id        String   @id @default(cuid())
   summaryId String
-  //summary   Summary  @relation(fields: [summaryId], references: [id], onDelete: Cascade)
+  summary   Summary  @relation(fields: [summaryId], references: [id], onDelete: Cascade)
   
   language  String   // es, fr, de, hi, etc.
   content   String   @db.Text
