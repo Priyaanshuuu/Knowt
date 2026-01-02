@@ -13,53 +13,57 @@ export async function transcribeAudio(fileURL: string): Promise<string> {
 
   try {
     console.log("Downloading Audio from:", fileURL);
+    const response = await axios.get(fileURL, {
+      responseType: "arraybuffer",
+      timeout: 60000,
+      headers: {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+      },
+    });
 
+    console.log("Download complete. Size:", response.data.length, "bytes");
     const urlPath = new URL(fileURL).pathname;
     const ext = path.extname(urlPath) || ".mp3";
-    
     const tempDir = os.tmpdir();
     const fileName = `audio-${Date.now()}${ext}`;
     tempFilePath = path.join(tempDir, fileName);
 
-    const response = await axios.get(fileURL, { responseType: "stream" });
-    const writer = fs.createWriteStream(tempFilePath);
+    fs.writeFileSync(tempFilePath, Buffer.from(response.data));
+    console.log("Saved to temp file:", tempFilePath);
 
-    response.data.pipe(writer);
-
-    await new Promise((resolve , reject) => {
-      writer.on("finish", ()=> resolve);
-      writer.on("error", (error) => reject(error));
-    });
-
-    console.log("Audio downloaded to temp file:", tempFilePath);
-
+    console.log("Sending to Groq for transcription...");
+    
     const transcription = await groq.audio.transcriptions.create({
       file: fs.createReadStream(tempFilePath),
-      model: "distil-whisper-large-v3-en", 
+      model: "whisper-large-v3",
       response_format: "json",
     });
 
     const text = transcription.text;
 
-    if (!text || text.trim().length === 0) {
-      throw new Error("Audio transcribed but returned empty text.");
+    if (!text) {
+      throw new Error("Groq returned empty transcription");
     }
 
-    console.log("Transcription complete. Length:", text.length);
-
+    console.log("Transcription successful!");
     return text;
 
   } catch (error) {
-    console.error("Audio Transcription Error:", error);
-    throw new Error(`Failed to transcribe audio:`);
+    console.error("Audio Transcription Failed:");
+    
+    if (axios.isAxiosError(error)) {
+      if (error.code === 'ECONNABORTED') throw new Error("Download timed out (file might be too big or slow connection)");
+      if (error.response?.status === 403) throw new Error("Access denied (403). The file link might be private.");
+    }
+    
+    throw error;
   } finally {
- 
     if (tempFilePath && fs.existsSync(tempFilePath)) {
       try {
         fs.unlinkSync(tempFilePath);
-        console.log("Temp audio file cleaned up");
-      } catch (cleanupError) {
-        console.warn("Failed to delete temp file:", cleanupError);
+        console.log("Temp file cleaned up.");
+      } catch (e) {
+        console.error("Cleanup warning:", e);
       }
     }
   }
