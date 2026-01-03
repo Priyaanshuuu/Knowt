@@ -28,6 +28,7 @@ model User {
 
 model Summary {
   id          String   @unique @default(cuid())
+  //summaryId   String
   userId      String
   inputType   String
   originalUrl String?
@@ -42,6 +43,7 @@ model Summary {
   share     Share[]
   language  String
   translation Translation[]
+  QnA        QnA[]
 
 }
 
@@ -94,3 +96,12 @@ model Upload {
 
   summary Summary @relation(fields: [summaryId] , references: [id])
  }
+
+model QnA {
+  id        Int      @id @default(autoincrement())
+  summaryId String
+  question  String
+  answer    String
+  summary   Summary  @relation(fields: [summaryId], references: [id])
+  createdAt DateTime @default(now())
+}
