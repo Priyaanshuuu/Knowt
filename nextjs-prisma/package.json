@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@heroicons/react": "^2.2.0",
     "@prisma/adapter-pg": "^7.2.0",
     "@prisma/client": "^7.2.0",
     "assemblyai": "^4.22.1",
@@ -16,6 +17,7 @@
     "bcrypt": "^6.0.0",
     "canvas": "^3.2.0",
     "cheerio": "^1.1.2",
+    "date-fns": "^4.1.0",
     "dotenv": "^17.2.3",
     "google-tts-api": "^2.0.2",
     "groq-sdk": "^0.37.0",
@@ -23,6 +25,7 @@
     "jsonwebtoken": "^9.0.3",
     "jspdf": "^3.0.4",
     "multer": "^2.0.2",
+    "nanoid": "^5.1.6",
     "next": "16.1.1",
     "next-auth": "^4.24.13",
     "openai": "^6.15.0",

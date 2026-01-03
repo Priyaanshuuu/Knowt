@@ -26,6 +26,16 @@ model User {
   uploads  Upload[]
 }
 
+model Share{
+  id         String   @id @default(cuid())
+  slug       String @unique 
+  summaryId String  @unique
+  createdAt DateTime @default(now())
+  views     Int     @default(0)
+
+  summary Summary @relation(fields: [summaryId] , references: [id] , onDelete: Cascade)
+ }
+
 model Summary {
   id          String   @unique @default(cuid())
   //summaryId   String
@@ -40,10 +50,13 @@ model Summary {
   user        User     @relation(fields: [userId], references: [id])
   uploadId String?
   upload   Upload? @relation(fields: [uploadId], references: [id])
-  share     Share[]
+  share     Share?
   language  String
   translation Translation[]
   QnA        QnA[]
+ 
+
+
  // translations Boolean
 
 }
@@ -85,18 +98,12 @@ model Upload {
   status      String        @default("PENDING")
   createdAt   DateTime      @default(now())
   user        User          @relation(fields: [userId], references: [id])
-  summaries   Summary[]
+  summary   Summary[]
   error       String?       @default("")
+  fileName    String?
+ // summary    Summary?
 }
 
- model Share{
-  id         String   @id @default(cuid())
-  slug       String @unique
-  summaryId String  @unique
-  createdAt DateTime @default(now())
-
-  summary Summary @relation(fields: [summaryId] , references: [id])
- }
 
 model QnA {
   id        Int      @id @default(autoincrement())
