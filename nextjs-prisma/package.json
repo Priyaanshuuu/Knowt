@@ -21,6 +21,7 @@
     "groq-sdk": "^0.37.0",
     "imagekit": "^6.0.0",
     "jsonwebtoken": "^9.0.3",
+    "jspdf": "^3.0.4",
     "multer": "^2.0.2",
     "next": "16.1.1",
     "next-auth": "^4.24.13",
