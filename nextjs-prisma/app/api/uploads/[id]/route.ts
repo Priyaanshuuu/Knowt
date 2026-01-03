@@ -22,7 +22,7 @@ export async function GET(
                 id : uploadId,
             },
             include: {
-                summaries: {
+                summary: {
                     include: {
                         share : true,
                     }

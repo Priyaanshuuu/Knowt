@@ -66,7 +66,7 @@ export default function SummaryActions({ summaryId }: SummaryActionsProps) {
   const handleGenerateAudio = async () => {
     setLoading(true)
     try {
-      const res = await fetch("/api/audio-summary", {
+      const res = await fetch("/api/text_to_speech", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ summaryId }),
@@ -91,7 +91,7 @@ export default function SummaryActions({ summaryId }: SummaryActionsProps) {
   const handleExportPDF = async () => {
     setLoading(true)
     try {
-      const res = await fetch("/api/export-pdf", {
+      const res = await fetch("/api/pdf_share", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ summaryId }),

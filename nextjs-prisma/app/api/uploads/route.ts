@@ -141,7 +141,7 @@ export async function GET(req : NextRequest){
         const uploads = await prisma.upload.findMany({
             where,
             include: {
-                summaries: {
+                summary: {
                     select: {
                         id: true,
                         summaryText: true,
