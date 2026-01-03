@@ -11,7 +11,7 @@ interface SummaryDetailPageProps {
   }
 }
 
-export default async function SummaryDetailPage({ params }: SummaryDetailPageProps) {
+export default async function SummaryDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const session = await getServerSession(authOptions)
   const userId = session?.user?.id
 
@@ -19,24 +19,18 @@ export default async function SummaryDetailPage({ params }: SummaryDetailPagePro
     redirect("/login")
   }
 
+  const { id } = await params  // <-- unwrap params
+
   const summary = await prisma.summary.findUnique({
-    where: { id: params.id },
+    where: { id },
     include: {
       upload: true,
-      translation: {
-        orderBy: { createdAt: "desc" },
-      },
-      QnA: {
-        orderBy: { createdAt: "asc" },
-      },
+      translation: { orderBy: { createdAt: "desc" } },
+      QnA: { orderBy: { createdAt: "asc" } },
     },
   })
 
-  if (!summary) {
-    notFound()
-  }
-
-  if (summary.userId !== userId) {
+  if (!summary || summary.userId !== userId) {
     notFound()
   }
 

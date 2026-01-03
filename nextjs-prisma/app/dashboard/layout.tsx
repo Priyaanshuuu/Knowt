@@ -53,8 +53,7 @@ export default async function DashboardLayout({
               </Link>
             ))}
           </nav>
-
-          {/* User section */}
+          
           <div className="border-t border-gray-200 p-4">
             <div className="flex items-center mb-3">
               <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-semibold">
