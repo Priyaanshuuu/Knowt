@@ -2,8 +2,28 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { motion, AnimatePresence } from "framer-motion"
+import { Oswald } from "next/font/google"
+import { 
+  FileText, Music, Video, Link as LinkIcon, 
+  UploadCloud, X, Loader2, CheckCircle2, ArrowRight, Zap 
+} from "lucide-react"
+
+// --- Font Config ---
+const oswald = Oswald({ 
+  subsets: ["latin"],
+  weight: ["400", "500", "700"],
+  variable: "--font-oswald",
+})
 
 type UploadType = "PDF" | "AUDIO" | "VIDEO" | "LINK"
+
+const tabs = [
+  { id: "PDF", label: "Document", icon: FileText, desc: "Upload PDFs" },
+  { id: "AUDIO", label: "Audio", icon: Music, desc: "MP3, WAV" },
+  { id: "VIDEO", label: "Video", icon: Video, desc: "YouTube URL" },
+  { id: "LINK", label: "Link", icon: LinkIcon, desc: "Web Articles" },
+] as const
 
 export default function UploadPage() {
   const router = useRouter()
@@ -14,6 +34,7 @@ export default function UploadPage() {
   const [error, setError] = useState("")
   const [dragActive, setDragActive] = useState(false)
 
+  // --- Handlers ---
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault()
     e.stopPropagation()
@@ -28,7 +49,6 @@ export default function UploadPage() {
     e.preventDefault()
     e.stopPropagation()
     setDragActive(false)
-
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       handleFileChange(e.dataTransfer.files[0])
     }
@@ -36,17 +56,14 @@ export default function UploadPage() {
 
   const handleFileChange = (selectedFile: File) => {
     setError("")
-
     if (activeTab === "PDF" && selectedFile.type !== "application/pdf") {
       setError("Please select a PDF file")
       return
     }
-
     if (activeTab === "AUDIO" && !selectedFile.type.startsWith("audio/")) {
       setError("Please select an audio file (MP3, WAV, etc.)")
       return
     }
-
     setFile(selectedFile)
   }
 
@@ -82,197 +99,259 @@ export default function UploadPage() {
       const data = await res.json()
 
       if (res.ok) {
-  
         const uploadId = data.upload.id
-
+        // Trigger background processing
         fetch("/api/summarize", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ uploadId }),
         })
-
         router.push("/dashboard/summaries")
       } else {
         setError(data.error || "Upload failed")
       }
     } catch (error) {
       setError("Something went wrong")
-      console.log(error);
-      
+      console.log(error)
     } finally {
       setUploading(false)
     }
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className={`max-w-4xl mx-auto space-y-8 ${oswald.className}`}>
+      
+      {/* --- Header --- */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Upload Content</h1>
-        <p className="text-gray-600 mt-1">
-          Upload a file or share a link to generate AI summaries
+        <h1 className="text-4xl font-bold uppercase tracking-tighter text-white mb-2">
+          Upload Content
+        </h1>
+        <p className="text-neutral-400 font-sans">
+          Feed our AI. Select a source type below.
         </p>
       </div>
-      <div className="bg-white rounded-lg shadow-sm p-6">
-        <div className="flex space-x-2 border-b border-gray-200 mb-6">
-          {(["PDF", "AUDIO", "VIDEO", "LINK"] as UploadType[]).map((type) => (
-            <button
-              key={type}
-              onClick={() => {
-                setActiveTab(type)
-                setFile(null)
-                setLinkUrl("")
-                setError("")
-              }}
-              className={`px-6 py-3 font-medium transition-colors ${
-                activeTab === type
-                  ? "text-blue-600 border-b-2 border-blue-600"
-                  : "text-gray-600 hover:text-gray-900"
-              }`}
-            >
-              {type}
-            </button>
-          ))}
+
+      <div className="bg-neutral-900 border border-neutral-800 rounded-3xl p-8 shadow-2xl">
+        
+        {/* --- Elastic Tab Switcher (New Animation) --- */}
+        <div className="flex flex-col md:flex-row gap-3 mb-8 h-auto md:h-24">
+          {tabs.map((tab) => {
+             const isActive = activeTab === tab.id;
+             return (
+              <motion.button
+                key={tab.id}
+                onClick={() => {
+                  setActiveTab(tab.id)
+                  setFile(null)
+                  setLinkUrl("")
+                  setError("")
+                }}
+                className={`relative overflow-hidden rounded-2xl border transition-all duration-300 flex items-center justify-center
+                  ${isActive 
+                    ? "bg-white border-white text-black" 
+                    : "bg-neutral-950 border-neutral-800 text-neutral-400 hover:border-neutral-700"
+                  }
+                `}
+                // Elastic Animation Logic
+                animate={{ 
+                  flex: isActive ? 3 : 1,
+                  opacity: 1
+                }}
+                transition={{ type: "spring", stiffness: 200, damping: 20 }}
+              >
+                <div className="flex flex-col items-center gap-1 min-w-20">
+                  <tab.icon className={`w-6 h-6 ${isActive ? "text-blue-600" : "text-neutral-500"}`} />
+                  <span className={`text-sm font-bold uppercase tracking-wider ${isActive ? "text-black" : "text-neutral-500"}`}>
+                    {tab.label}
+                  </span>
+                  
+                  {/* Description only visible when active */}
+                  <AnimatePresence>
+                    {isActive && (
+                      <motion.span 
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="text-[10px] font-sans text-neutral-500 font-medium"
+                      >
+                        {tab.desc}
+                      </motion.span>
+                    )}
+                  </AnimatePresence>
+                </div>
+
+                {/* Active Indicator Dot */}
+                {isActive && (
+                   <motion.div 
+                     layoutId="active-dot"
+                     className="absolute top-3 right-3 w-2 h-2 rounded-full bg-blue-600" 
+                   />
+                )}
+              </motion.button>
+             )
+          })}
         </div>
 
-        {(activeTab === "PDF" || activeTab === "AUDIO") && (
-          <div>
-            <div
-              className={`border-2 border-dashed rounded-lg p-12 text-center transition-colors ${
-                dragActive
-                  ? "border-blue-500 bg-blue-50"
-                  : "border-gray-300 hover:border-gray-400"
-              }`}
-              onDragEnter={handleDrag}
-              onDragLeave={handleDrag}
-              onDragOver={handleDrag}
-              onDrop={handleDrop}
-            >
-              {file ? (
-                <div>
-                  <svg className="w-16 h-16 text-green-600 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <p className="text-lg font-medium text-gray-900 mb-2">
-                    {file.name}
-                  </p>
-                  <p className="text-sm text-gray-500 mb-4">
-                    {(file.size / 1024 / 1024).toFixed(2)} MB
-                  </p>
-                  <button
-                    onClick={() => setFile(null)}
-                    className="text-sm text-red-600 hover:text-red-700"
-                  >
-                    Remove file
-                  </button>
+        {/* --- Content Area --- */}
+        <div className="font-sans">
+          <AnimatePresence mode="wait">
+            {(activeTab === "PDF" || activeTab === "AUDIO") ? (
+              <motion.div
+                key="file-upload"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.2 }}
+              >
+                <div
+                  className={`
+                    relative border-2 border-dashed rounded-2xl p-12 text-center transition-all duration-300
+                    ${dragActive 
+                      ? "border-blue-500 bg-blue-500/10 scale-[1.01]" 
+                      : "border-neutral-700 hover:border-neutral-500 bg-neutral-950/50"
+                    }
+                  `}
+                  onDragEnter={handleDrag}
+                  onDragLeave={handleDrag}
+                  onDragOver={handleDrag}
+                  onDrop={handleDrop}
+                >
+                  {file ? (
+                    <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }}>
+                      <div className="w-16 h-16 bg-green-500/20 text-green-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                        <CheckCircle2 className="w-8 h-8" />
+                      </div>
+                      <p className={`text-xl font-bold text-white mb-1 ${oswald.className} uppercase`}>
+                        {file.name}
+                      </p>
+                      <p className="text-sm text-neutral-500 mb-6">
+                        {(file.size / 1024 / 1024).toFixed(2)} MB
+                      </p>
+                      <button
+                        onClick={() => setFile(null)}
+                        className="text-sm text-red-400 hover:text-red-300 font-medium flex items-center justify-center gap-2 mx-auto uppercase tracking-wide"
+                      >
+                        <X className="w-4 h-4" /> Remove file
+                      </button>
+                    </motion.div>
+                  ) : (
+                    <div>
+                      <div className="w-16 h-16 bg-neutral-800 rounded-2xl flex items-center justify-center mx-auto mb-4 text-neutral-400">
+                        <UploadCloud className="w-8 h-8" />
+                      </div>
+                      <p className={`text-xl font-bold text-white mb-2 ${oswald.className} uppercase`}>
+                        Drop your {activeTab.toLowerCase()}
+                      </p>
+                      <p className="text-sm text-neutral-500 mb-6">
+                        or click to browse system files
+                      </p>
+                      <label className="inline-flex px-8 py-3 bg-white text-neutral-950 rounded-xl font-bold hover:bg-neutral-200 cursor-pointer transition-colors shadow-lg shadow-white/5 uppercase tracking-wide">
+                        Choose File
+                        <input
+                          type="file"
+                          className="hidden"
+                          accept={activeTab === "PDF" ? ".pdf" : "audio/*"}
+                          onChange={(e) => {
+                            if (e.target.files && e.target.files[0]) {
+                              handleFileChange(e.target.files[0])
+                            }
+                          }}
+                        />
+                      </label>
+                    </div>
+                  )}
                 </div>
-              ) : (
-                <div>
-                  <svg className="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                  </svg>
-                  <p className="text-lg font-medium text-gray-900 mb-2">
-                    Drop your {activeTab.toLowerCase()} file here
-                  </p>
-                  <p className="text-sm text-gray-500 mb-4">
-                    or click to browse
-                  </p>
-                  <label className="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer transition-colors">
-                    Choose File
-                    <input
-                      type="file"
-                      className="hidden"
-                      accept={activeTab === "PDF" ? ".pdf" : "audio/*"}
-                      onChange={(e) => {
-                        if (e.target.files && e.target.files[0]) {
-                          handleFileChange(e.target.files[0])
-                        }
-                      }}
-                    />
-                  </label>
+              </motion.div>
+            ) : (
+              <motion.div
+                key="url-upload"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.2 }}
+              >
+                <div className="bg-neutral-950/50 border border-neutral-800 rounded-2xl p-8">
+                   <label className={`block text-lg font-bold text-white uppercase tracking-wide mb-4 ${oswald.className}`}>
+                    {activeTab === "VIDEO" ? "YouTube URL" : "Web Page URL"}
+                   </label>
+                   <div className="relative">
+                      <input
+                          type="url"
+                          value={linkUrl}
+                          onChange={(e) => setLinkUrl(e.target.value)}
+                          placeholder={activeTab === "VIDEO" ? "https://youtube.com/watch?v=..." : "https://example.com/article"}
+                          className="w-full px-6 py-5 bg-neutral-900 border border-neutral-700 rounded-xl focus:ring-2 focus:ring-white focus:border-transparent outline-none transition-all text-white placeholder:text-neutral-600 font-mono text-lg"
+                      />
+                      <div className="absolute right-4 top-1/2 -translate-y-1/2 p-2 bg-neutral-800 rounded-lg">
+                        <LinkIcon className="w-4 h-4 text-neutral-400" />
+                      </div>
+                   </div>
+                   
+                   <p className="text-xs text-neutral-500 mt-4 flex items-center gap-2">
+                      <Zap className="w-3 h-3 text-yellow-500" />
+                      {activeTab === "VIDEO"
+                        ? "Pro Tip: We will extract the transcript automatically."
+                        : "Pro Tip: Works best with blogs and news articles."}
+                   </p>
                 </div>
-              )}
-            </div>
-          </div>
-        )}
-        {(activeTab === "VIDEO" || activeTab === "LINK") && (
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              {activeTab === "VIDEO" ? "YouTube URL" : "Web Page URL"}
-            </label>
-            <input
-              type="url"
-              value={linkUrl}
-              onChange={(e) => setLinkUrl(e.target.value)}
-              placeholder={
-                activeTab === "VIDEO"
-                  ? "https://youtube.com/watch?v=..."
-                  : "https://example.com/article"
-              }
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-            <p className="text-xs text-gray-500 mt-2">
-              {activeTab === "VIDEO"
-                ? "Enter a YouTube video URL to summarize"
-                : "Enter any web page URL to extract and summarize content"}
-            </p>
-          </div>
-        )}
-        {error && (
-          <div className="mt-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
-            {error}
-          </div>
-        )}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
 
-        <div className="mt-6">
+        {/* --- Error Message --- */}
+        <AnimatePresence>
+          {error && (
+            <motion.div 
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              className="mt-6 bg-red-900/20 border border-red-500/20 text-red-400 px-4 py-3 rounded-xl text-sm flex items-center gap-2 font-sans"
+            >
+              <div className="w-1.5 h-1.5 rounded-full bg-red-500" />
+              {error}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* --- Submit Button --- */}
+        <div className="mt-8 font-sans">
           <button
             onClick={handleUpload}
             disabled={uploading || (!file && !linkUrl)}
-            className="w-full px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+            className="w-full px-6 py-4 bg-white text-neutral-950 font-bold uppercase tracking-wide rounded-xl hover:bg-neutral-200 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 shadow-lg hover:shadow-xl group"
           >
             {uploading ? (
-              <span className="flex items-center justify-center">
-                <svg className="animate-spin h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                Uploading...
-              </span>
+              <>
+                <Loader2 className="w-5 h-5 animate-spin" />
+                Processing...
+              </>
             ) : (
-              "Upload & Summarize"
+              <>
+                Start Analysis <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </>
             )}
           </button>
         </div>
       </div>
 
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-        <h3 className="font-semibold text-blue-900 mb-2">
-          What happens next?
+      {/* --- Process Info Card --- */}
+      <div className="bg-linear-to-br from-blue-900/10 to-indigo-900/10 border border-blue-500/10 rounded-3xl p-8 font-sans">
+        <h3 className={`font-bold text-blue-400 mb-4 text-xl ${oswald.className} uppercase tracking-wide flex items-center gap-2`}>
+          <Zap className="w-5 h-5" /> System Protocol
         </h3>
-        <ul className="text-sm text-blue-800 space-y-2">
-          <li className="flex items-start">
-            <svg className="w-5 h-5 mr-2 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-            </svg>
-            Your content will be uploaded securely
-          </li>
-          <li className="flex items-start">
-            <svg className="w-5 h-5 mr-2 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-            </svg>
-            AI will extract and analyze the content
-          </li>
-          <li className="flex items-start">
-            <svg className="w-5 h-5 mr-2 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-            </svg>
-            A concise summary will be generated
-          </li>
-          <li className="flex items-start">
-            <svg className="w-5 h-5 mr-2 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-            </svg>
-            You can then translate, generate Q&A, create audio, and export PDF
-          </li>
+        <ul className="grid grid-cols-1 md:grid-cols-2 gap-3 text-neutral-400 text-sm">
+          {[
+            "Secure encryption enabled.",
+            "AI Context extraction.",
+            "Key insight generation.",
+            "Multi-format export ready."
+          ].map((item, idx) => (
+             <li key={idx} className="flex items-center gap-3 p-2 bg-neutral-900/50 rounded-lg border border-neutral-800/50">
+               <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+               {item}
+             </li>
+          ))}
         </ul>
       </div>
     </div>

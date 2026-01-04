@@ -3,6 +3,16 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import { motion } from "framer-motion"
+import { Loader2, Mail, Lock, User, ArrowLeft } from "lucide-react"
+import { Oswald } from "next/font/google"
+
+// --- Font Config ---
+const oswald = Oswald({ 
+  subsets: ["latin"],
+  weight: ["400", "500", "700"],
+  variable: "--font-oswald",
+})
 
 export default function RegisterPage() {
   const router = useRouter()
@@ -47,98 +57,144 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100 flex items-center justify-center px-4">
-      <div className="max-w-md w-full">
+    <div className={`min-h-screen relative flex items-center justify-center overflow-hidden bg-neutral-950 text-white transition-colors duration-300 ${oswald.className}`}>
+      
+      {/* --- Background Blobs --- */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full -z-10 pointer-events-none opacity-40">
+        <div className="absolute top-20 right-10 w-96 h-96 bg-blue-900/20 rounded-full blur-[100px]" />
+        <div className="absolute bottom-20 left-10 w-96 h-96 bg-purple-900/20 rounded-full blur-[100px]" />
+      </div>
+
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+        className="max-w-md w-full px-4 relative z-10"
+      >
+        {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          <Link href="/" className="inline-block mb-6">
+             <span className="text-4xl font-bold tracking-tighter uppercase text-white hover:text-blue-500 transition-colors">
+               KNOWT.
+             </span>
+          </Link>
+          <h1 className="text-xl font-medium uppercase tracking-wide text-neutral-400">
             Create Account
           </h1>
-          <p className="text-gray-600">
-            Start summarizing with AI for free
-          </p>
         </div>
 
-        <div className="bg-white rounded-xl shadow-xl p-8">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Name */}
-            <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+        {/* Register Form Card */}
+        <div className="bg-neutral-900/50 backdrop-blur-xl border border-neutral-800 rounded-3xl shadow-2xl p-8">
+          <form onSubmit={handleSubmit} className="space-y-5">
+            
+            {/* Name Input */}
+            <div className="space-y-2">
+              <label htmlFor="name" className="text-sm font-bold uppercase tracking-wider text-neutral-300 font-sans">
                 Full Name
               </label>
-              <input
-                id="name"
-                type="text"
-                required
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="John Doe"
-              />
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-500" />
+                <input
+                  id="name"
+                  type="text"
+                  required
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full pl-10 pr-4 py-3 bg-neutral-950 border border-neutral-800 rounded-xl focus:ring-2 focus:ring-white focus:border-transparent outline-none transition-all text-white placeholder:text-neutral-600 font-sans"
+                  placeholder="John Doe"
+                />
+              </div>
             </div>
 
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+            {/* Email Input */}
+            <div className="space-y-2">
+              <label htmlFor="email" className="text-sm font-bold uppercase tracking-wider text-neutral-300 font-sans">
                 Email Address
               </label>
-              <input
-                id="email"
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="you@example.com"
-              />
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-500" />
+                <input
+                  id="email"
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full pl-10 pr-4 py-3 bg-neutral-950 border border-neutral-800 rounded-xl focus:ring-2 focus:ring-white focus:border-transparent outline-none transition-all text-white placeholder:text-neutral-600 font-sans"
+                  placeholder="you@example.com"
+                />
+              </div>
             </div>
 
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+            {/* Password Input */}
+            <div className="space-y-2">
+              <label htmlFor="password" className="text-sm font-bold uppercase tracking-wider text-neutral-300 font-sans">
                 Password
               </label>
-              <input
-                id="password"
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="••••••••"
-              />
-              <p className="text-xs text-gray-500 mt-1">
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-500" />
+                <input
+                  id="password"
+                  type="password"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full pl-10 pr-4 py-3 bg-neutral-950 border border-neutral-800 rounded-xl focus:ring-2 focus:ring-white focus:border-transparent outline-none transition-all text-white placeholder:text-neutral-600 font-sans"
+                  placeholder="••••••••"
+                />
+              </div>
+              <p className="text-xs text-neutral-500 ml-1 font-sans">
                 Must be at least 6 characters
               </p>
             </div>
 
+            {/* Error Message */}
             {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+              <motion.div 
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                className="bg-red-900/20 border border-red-900/50 text-red-400 px-4 py-3 rounded-xl text-sm flex items-center gap-2 font-sans"
+              >
+                <div className="w-1.5 h-1.5 rounded-full bg-red-500" />
                 {error}
-              </div>
+              </motion.div>
             )}
 
+            {/* Submit Button */}
             <button
               type="submit"
               disabled={loading}
-              className="w-full px-4 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors disabled:bg-blue-400 disabled:cursor-not-allowed"
+              className="w-full py-3.5 px-4 bg-white text-black font-bold uppercase tracking-wide rounded-full hover:bg-neutral-200 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-white/10 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-sans"
             >
-              {loading ? "Creating account..." : "Create Account"}
+              {loading ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Creating...
+                </>
+              ) : (
+                "Create Account"
+              )}
             </button>
           </form>
 
-          <div className="mt-6 text-center">
-            <p className="text-gray-600 text-sm">
+          {/* Footer Links */}
+          <div className="mt-8 text-center">
+            <p className="text-neutral-500 text-sm font-sans">
               Already have an account?{" "}
-              <Link href="/login" className="text-blue-600 hover:text-blue-700 font-medium">
+              <Link href="/login" className="text-white font-bold hover:underline">
                 Sign in
               </Link>
             </p>
           </div>
         </div>
-        <div className="mt-6 text-center">
-          <Link href="/" className="text-gray-600 hover:text-gray-900 text-sm">
-            ← Back to Home
+
+        <div className="mt-8 text-center">
+          <Link href="/" className="inline-flex items-center gap-2 text-neutral-500 hover:text-white transition-colors text-sm font-medium font-sans uppercase tracking-wide">
+            <ArrowLeft className="w-4 h-4" />
+            Back to Home
           </Link>
         </div>
-      </div>
+        
+      </motion.div>
     </div>
   )
 }
