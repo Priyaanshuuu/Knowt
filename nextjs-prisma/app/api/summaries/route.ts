@@ -4,7 +4,8 @@ import { requireAuth } from "@/lib/auth-helpers"
 
 export async function GET(req: NextRequest) {
   try {
- 
+     console.log(req);
+     
     const user = await requireAuth()
     if (user instanceof NextResponse) return user
 

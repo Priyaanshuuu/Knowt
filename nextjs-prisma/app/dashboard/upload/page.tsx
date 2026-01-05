@@ -271,28 +271,35 @@ export default function UploadPage() {
                 transition={{ duration: 0.2 }}
               >
                 <div className="bg-neutral-950/50 border border-neutral-800 rounded-2xl p-8">
-                   <label className={`block text-lg font-bold text-white uppercase tracking-wide mb-4 ${oswald.className}`}>
-                    {activeTab === "VIDEO" ? "YouTube URL" : "Web Page URL"}
-                   </label>
-                   <div className="relative">
-                      <input
-                          type="url"
-                          value={linkUrl}
-                          onChange={(e) => setLinkUrl(e.target.value)}
-                          placeholder={activeTab === "VIDEO" ? "https://youtube.com/watch?v=..." : "https://example.com/article"}
-                          className="w-full px-6 py-5 bg-neutral-900 border border-neutral-700 rounded-xl focus:ring-2 focus:ring-white focus:border-transparent outline-none transition-all text-white placeholder:text-neutral-600 font-mono text-lg"
-                      />
-                      <div className="absolute right-4 top-1/2 -translate-y-1/2 p-2 bg-neutral-800 rounded-lg">
-                        <LinkIcon className="w-4 h-4 text-neutral-400" />
-                      </div>
-                   </div>
-                   
-                   <p className="text-xs text-neutral-500 mt-4 flex items-center gap-2">
-                      <Zap className="w-3 h-3 text-yellow-500" />
-                      {activeTab === "VIDEO"
-                        ? "Pro Tip: We will extract the transcript automatically."
-                        : "Pro Tip: Works best with blogs and news articles."}
-                   </p>
+                   {activeTab === "VIDEO" ? (
+                     <div className="bg-yellow-900/20 border border-yellow-500/30 rounded-xl p-6 text-center">
+                       <p className="text-yellow-400 font-bold text-lg mb-2">⚠️ Service Temporarily Down</p>
+                       <p className="text-yellow-300/80 text-sm">Sorry, video transcribing is currently down. We apologize for the inconvenience. Please try again later.</p>
+                     </div>
+                   ) : (
+                     <>
+                       <label className={`block text-lg font-bold text-white uppercase tracking-wide mb-4 ${oswald.className}`}>
+                         Web Page URL
+                       </label>
+                       <div className="relative">
+                          <input
+                              type="url"
+                              value={linkUrl}
+                              onChange={(e) => setLinkUrl(e.target.value)}
+                              placeholder="https://example.com/article"
+                              className="w-full px-6 py-5 bg-neutral-900 border border-neutral-700 rounded-xl focus:ring-2 focus:ring-white focus:border-transparent outline-none transition-all text-white placeholder:text-neutral-600 font-mono text-lg"
+                          />
+                          <div className="absolute right-4 top-1/2 -translate-y-1/2 p-2 bg-neutral-800 rounded-lg">
+                            <LinkIcon className="w-4 h-4 text-neutral-400" />
+                          </div>
+                       </div>
+                       
+                       <p className="text-xs text-neutral-500 mt-4 flex items-center gap-2">
+                          <Zap className="w-3 h-3 text-yellow-500" />
+                          Pro Tip: Works best with blogs and news articles.
+                       </p>
+                     </>
+                   )}
                 </div>
               </motion.div>
             )}

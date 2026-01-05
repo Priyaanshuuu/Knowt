@@ -7,7 +7,7 @@ const imagekit = new ImageKit({
 }) 
 
 export async function uploadFiles(
-    file : Buffer,
+    file : string | Buffer,
     fileName : string,
     folder : string = "uploads",
 ){

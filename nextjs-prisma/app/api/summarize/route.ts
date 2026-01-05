@@ -75,6 +75,13 @@ export async function POST(req: NextRequest){
                     text = await extractTextfromWeb(upload.source)
                     break;
                 }
+
+                case "VIDEO":{
+              const { getVideoTranscript } = await import("@/lib/extractors/video")
+              const { text: transcript } = await getVideoTranscript(upload.source)
+              text = transcript
+              break;
+            }
             
                 default:
                     throw new Error(`Unsupported type ${upload.type}`)

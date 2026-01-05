@@ -72,6 +72,7 @@ export async function POST(req : NextRequest){
                     { error: `Source URL is required for ${type} type` },
                     { status: 400 }
                 )
+                
             }
 
             console.log("Using source URL", source)
