@@ -5,14 +5,15 @@ import { requireAuth } from "@/lib/auth-helpers"
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-   
-    const user = await requireAuth()
-    if (user instanceof NextResponse) return user
+    const { id } = await params; 
+    
+    const user = await requireAuth();
+    if (user instanceof NextResponse) return user;
 
-    const summaryId = params.id
+    const summaryId = id;
 
   
     const summary = await prisma.summary.findUnique({

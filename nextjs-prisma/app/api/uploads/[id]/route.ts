@@ -8,14 +8,14 @@ import { deleteFile } from "@/lib/storage";
 
 export async function GET(
     req : NextRequest,
-    {params} : {params : {id : string}}
+   { params }: { params: Promise<{ id: string }> }
 ){
     try {
-
+        const {id} = await params
         const user = await requireAuth()
         if(user instanceof NextResponse) return user
 
-        const uploadId = params.id
+        const uploadId = id
 
         const upload = await prisma.upload.findUnique({
             where: {
@@ -53,13 +53,14 @@ export async function GET(
 
 export async function PATCH(
     req : NextRequest,
-    {params} : {params : {id : string}}
+    { params }: { params: Promise<{ id: string }> }
 ){
     try {
+        const {id} = await params
         const user = await requireAuth()
         if(user instanceof NextResponse) return user
-        
-        const uploadId = params.id
+
+        const uploadId = id
         const body : { status : string} = await req.json();
         const { status } = body;
 
@@ -114,14 +115,14 @@ export async function PATCH(
 
   export async function DELETE(
         req : NextRequest,
-        {params} : { params: { id : string}}
-    ){
-        try {
-            const user = await requireAuth();
-            if(user instanceof NextResponse) return user
+        { params }: { params: Promise<{ id: string }> }
+){
+    try {
+        const {id} = await params
+        const user = await requireAuth()
+        if(user instanceof NextResponse) return user
 
-            const uploadId = params.id
-
+        const uploadId = id
             const upload = await prisma.upload.findUnique({
                 where: {id : uploadId}
             })
