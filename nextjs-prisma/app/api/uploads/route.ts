@@ -2,9 +2,9 @@ import { NextRequest , NextResponse } from "next/server";
 import prisma from '@/lib/prisma'
 import { requireAuth } from "@/lib/auth-helpers";
 
-import { Prisma } from "@prisma/client";
+import { Prisma , UploadType } from "@prisma/client";
 import { uploadFiles } from "@/lib/storage";
-import { UploadType } from "@prisma/client";
+//import { UploadType } from "@prisma/client";
 
 export async function POST(req : NextRequest){
     try {
