@@ -3,7 +3,6 @@ import prisma from '@/lib/prisma'
 import { requireAuth } from "@/lib/auth-helpers";
 import {  UploadType } from "@/app/generated/prisma/enums";
 import { Prisma } from "@/app/generated/prisma/client";
-import { UploadStatus } from "@/app/generated/prisma/enums";
 import { uploadFiles } from "@/lib/storage";
 
 export async function POST(req : NextRequest){
@@ -89,7 +88,7 @@ export async function POST(req : NextRequest){
                 userId: user.id,
                 type: type as UploadType,
                 source: fileUrl,
-                status: UploadStatus.PENDING,
+                status: "PENDING",
                 error: ""
             },
         })
@@ -132,7 +131,7 @@ export async function GET(req : NextRequest){
         };
 
         if(status){
-            where.status = status as UploadStatus;
+            where.status = status;
         }
 
         if(type){
