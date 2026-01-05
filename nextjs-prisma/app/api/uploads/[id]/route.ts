@@ -1,7 +1,7 @@
 import { NextRequest , NextResponse } from "next/server";
 import prisma from "@/lib/prisma"
 import { requireAuth } from "@/lib/auth-helpers";
-import { UploadStatus } from "@/app/generated/prisma/enums";
+//import { UploadStatus } from "@/app/generated/prisma/enums";
 import { deleteFile } from "@/lib/storage";
 
 
@@ -93,7 +93,7 @@ export async function PATCH(
         const updatedUpload = await prisma.upload.update({
             where: {id : uploadId},
             data: {
-                status : (status as UploadStatus) || upload.status,
+                status : (status) || upload.status,
                 
             }
         })
