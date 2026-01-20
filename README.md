@@ -67,7 +67,7 @@ Clone the repo:
 
 Bash
 
-git clone https://github.com/Priyaaanshu/knowt.git
+git clone https://github.com/Priyaanshuuu/knowt.git
 cd knowt
 Install dependencies:
 
